@@ -1,0 +1,24 @@
+{
+    "client":[],
+    "ssh": {
+        "host": "",
+        "user": "",
+        "password": "",
+        "keyfile": ""
+    },
+    "ftp": [
+        {
+            "host": "",
+            "user": "",
+            "password": ""
+        }
+    ],
+    "database": [
+        {
+            "database": "",
+            "host": "",
+            "user": "",
+            "password": ""
+        }
+    ]
+}

@@ -1,0 +1,185 @@
+#!/bin/bash
+
+# Quasar Cli Tool
+
+
+Help()
+{
+    echo "Quasar Platform Cli"
+    echo "----------------------"
+    echo "  help :   Open this message"
+    echo "  status :   Execute server bash shell"
+    echo "  dev :   Set server container to development"
+    echo "  prod :   Set server container to production"
+    echo ""
+    echo "Docker"
+    echo "  start :   Start servers"
+    echo "  up :   Start docker containers only"
+    echo "  down :   Stop docker containers"
+    echo "  restart :   Restart docker containers"
+    echo ""
+    echo "Shell tools"
+    echo "  bash :   Interactive server bash shell"
+    echo "  server :   Execute commands in server container"
+    echo "  client :   Execute commands in client container"
+    echo ""
+    echo "Development Tools"
+    echo "  code :   Open text editor "
+    echo "  composer :   Composer Cli"
+    echo "  expressive :  Expressive Cli"
+    echo "  doctrine :   Doctrine Cli"
+    echo "  ng :   Angular Cli"
+    echo "  yarn :  Yarn commands and quasar/client/package.json scripts"
+}
+
+
+function Main()
+{
+    case $1 in
+        '') Help $@; ;;
+        'start') CmdStart; ;;
+        'up') CmdDockerUp; ;;
+        'down') CmdDockerDown; ;;
+        'restart') CmdDockerRestart; ;;
+        'code') CmdCode ; ;;
+        'composer') CmdComposer $@; ;;
+        'expressive') CmdExpressive $@; ;;
+        'doctrine') CmdDoctrine $@; ;;
+        #'yarn') CmdNode 'yarn' $@;;
+        'yarn') CmdNode $@;;
+        'ng') CmdNg $@;;
+
+        'bash') CmdBash; ;;
+        'server') CmdServerBash $@; ;;
+        'client') CmdNode $@; ;;
+        'exec') CmdQuasar $@; ;;
+         
+        'status') CmdComposer 'run' 'development-status'; ;;
+        'dev') CmdComposer 'run' 'development-enable'; ;;
+        'prod') CmdComposer 'run' 'development-disable'; ;;
+        'clean') CmdClean; ;;
+        'install') CmdInstall; ;;
+        *) Help ;;
+    esac
+}
+
+#Clean
+CmdClean()
+{
+    echo "Quasar:: Clean"
+    sh ./automation/scripts/clean.sh
+    echo "Quasar:: Project cleaned"
+}
+
+#Install
+CmdInstall()
+{
+    echo "Quasar:: Install"
+    echo "Quasar:: Install dependencies"
+    sh ./automation/scripts/install-vendor.sh
+    echo "Quasar:: Enable Development Mode"
+    CmdComposer 'run' 'development-enable'
+    echo "Quasar:: Generate database"
+    sh ./automation/scripts/install-database.sh
+    CmdDockerRestart;
+    echo "Quasar:: Installation done"
+}
+
+# Text-Editor
+CmdCode()
+{
+    echo "Quasar:: Code"
+    if type code >/dev/null 2>&1; then
+        echo "Abrindo Visual Studio Code"
+        code -r .
+    else
+        echo "Visual Studio Code não instalado no sistema"
+    fi
+}
+
+# Docker
+CmdDockerDown()
+{
+    docker-compose down
+    echo "Quasar:: Down"
+}
+
+CmdDockerUp()
+{
+    echo "Quasar:: Up"
+    docker-compose up -d
+}
+
+CmdDockerRestart()
+{
+    echo "Quasar:: Restart"
+    CmdDockerDown
+    CmdDockerUp
+}
+
+# Server Starters
+CmdStart()
+{
+    CmdDockerUp
+    CmdNode run start
+}
+
+#Tools
+CmdComposer()
+{
+    shift
+    docker-compose exec server composer $@
+}
+
+CmdNode()
+{
+    shift
+    cd storage/client
+    yarn $@;
+    #docker-compose exec client $@;
+}
+
+CmdNg()
+{
+    CmdNode ng $@
+}
+
+CmdQuasar()
+{
+    shift
+    docker-compose exec server php bin/quasar.php $@
+}
+
+CmdServer()
+{
+    shift;
+    if [ "$1" = "--list" ]; then
+        docker-compose exec server ls -l vendor/bin
+    else
+        docker-compose exec server vendor/bin/$@
+    fi
+}
+
+CmdServerBash()
+{
+    shift
+    docker-compose exec server $@
+}
+
+CmdBash()
+{
+    docker-compose exec server sh
+}
+
+CmdExpressive()
+{
+    shift
+    CmdComposer run 'expressive' $@;
+}
+
+CmdDoctrine()
+{
+    CmdServer doctrine $@
+}
+
+Main $@
