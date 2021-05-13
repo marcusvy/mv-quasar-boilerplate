@@ -1,6 +1,6 @@
 # MvQuasar :: Capture
 
-Módulo Quasar de ambiente de conversão de leads para Athenas Educacional Leads.
+Módulo Quasar de ambiente de conversão de leads.
 
 ## Author
 
